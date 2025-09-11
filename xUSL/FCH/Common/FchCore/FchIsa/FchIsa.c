@@ -12,6 +12,9 @@
 #include <string.h>
 #include <FchClass-api.h>
 #include <FCH/Common/Fch.h>
+#include <FCH/Common/FchReg.h>
+#include <FCH/Common/FchCommon.h>
+#include <Pci.h>
 #include "FchSpi.h"
 #include "FchIsa.h"
 
@@ -61,6 +64,37 @@ SIL_STATUS FchIsaSetInputBlk (void)
 
 
 /**
+ * FchIsaInitSpi
+ * @brief Initializes SPI controller during Power-On
+ *
+ * @param[in] FchDataPtr Pointer to Fch input data block
+ * @param[in] FchSpiData FCH_SPI configuration structure pointer.
+ *
+ */
+static void
+FchIsaInitLpc (
+  FCHCLASS_INPUT_BLK *FchDataPtr,
+  FCH_LPC            *FchLpc
+  )
+{
+  xUSLPciReadModifyWrite8(
+    PCI_LIB_ADDRESS(FCH_LPC_BUS, FCH_LPC_DEV, FCH_LPC_FUNC, FCH_LPCPCICFG_PCI_CONTROL),
+    0xFB,
+    BIT_8(2)
+    );
+  xUSLPciReadModifyWrite8(
+    PCI_LIB_ADDRESS(FCH_LPC_BUS, FCH_LPC_DEV, FCH_LPC_FUNC, FCH_LPCPCICFG_MISCELLANEOUS_CONTROL_BITS),
+    0xFC,
+    0
+    );
+  xUSLPciReadModifyWrite8(
+    PCI_LIB_ADDRESS(FCH_LPC_BUS, FCH_LPC_DEV, FCH_LPC_FUNC, FCH_LPCPCICFG_HOSTCONTROL),
+    0xF3,
+    BIT_8(2) | BIT_8(3)
+    );
+}
+
+/**
  * InitializeFchIsaTp1
  *
  * @brief Config ISA controller during timepoint 1 (Pre-Pcie phase)
@@ -90,6 +124,7 @@ InitializeFchIsaTp1 (void)
   }
   FCH_TRACEPOINT(SIL_TRACE_INFO, "SIL FCH ISA found blk at: 0x%x \n", LclInpIsaBlk);
 
+  FchIsaInitLpc(LclInpFchBlk, &(LclInpIsaBlk->LpcConfig));
   FchIsaInitSpi(LclInpFchBlk, &(LclInpIsaBlk->SpiConfig));
 
   FCH_TRACEPOINT(SIL_TRACE_EXIT, "\n");

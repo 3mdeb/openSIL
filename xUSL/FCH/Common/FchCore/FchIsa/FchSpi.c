@@ -62,7 +62,7 @@ FchIsaInitSpi (
       );
   }
 
-  // Set SPI TMP Read/Write Speed
+  // Set SPI TPM Read/Write Speed
   if (FchSpiData->SpiTpmSpeed) {
     xUSLMemReadModifyWrite32((void *)(size_t)(SPI_BASE + FCH_LPCHOSTSPIREG_SPI100ENABLE_REGISTER),
       ~(uint32_t)(0xF << 16),
@@ -90,6 +90,12 @@ FchIsaInitSpi (
   xUSLPciReadModifyWrite8(PCI_LIB_ADDRESS(FCH_LPC_BUS, FCH_LPC_DEV, FCH_LPC_FUNC, FCH_LPCPCICFG_HOSTCONTROL),
     0xFF,
     BIT_8(0)
+    );
+
+  // Enable SPI prefetch for USB
+  xUSLPciReadModifyWrite8(PCI_LIB_ADDRESS(FCH_LPC_BUS, FCH_LPC_DEV, FCH_LPC_FUNC, 0xBA),
+    0xFF,
+    BIT_8(7)
     );
 
   FCH_TRACEPOINT(SIL_TRACE_EXIT, "\n");
