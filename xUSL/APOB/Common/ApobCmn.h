@@ -46,6 +46,7 @@
 #define APOB_SYS_SLINK_INFO_TYPE                  20
 #define APOB_DF_DXIO_PHY_FW_OVERRIDE_INFO_TYPE    21
 #define APOB_MEM_PMU_TRAINING_FAILURE_INFO_TYPE   22
+#define APOB_ENV_FLAGS_INFO_TYPE                  23
 #define APOB_SYS_CXL_INFO_TYPE                    24
 #define APOB_MEM_SYSTEM_CONFIGURATION_INFO_TYPE   25
 #define APOB_GEN_CONFIG_DATA_TYPE                 26

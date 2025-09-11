@@ -382,3 +382,18 @@ typedef struct {
   APOB_MEM_CFG_INFO OdtsCmdThrotEn;                              ///< ODTS Command Throttle Configuration
   APOB_MEM_CFG_INFO OdtsCmdThrotCyc;                             ///< ODTS Command Throttle Cycle Configuration
 } APOB_MEM_GENERAL_CONFIGURATION_INFO_TYPE_STRUCT_BRH;
+
+
+typedef struct {
+  uint32_t    Reserved0;
+  uint32_t    Reserved1;
+} ENV_FLAGS_STRUCT;
+
+/**
+ * @brief AMD APOB Environment Flags Info Struct
+ *
+ */
+typedef struct {
+  APOB_TYPE_HEADER  ApobTypeHeader;  ///< APOB Type Header
+  ENV_FLAGS_STRUCT  Flags;           ///< Environment Flags
+} APOB_ENV_FLAGS_STRUCT;

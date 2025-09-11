@@ -7,6 +7,9 @@
  */
 
 #include <SilCommon.h>
+#include <APOB/ApobIp2Ip.h>
+#include <APOB/BRH/Apob-BRH.h>
+#include <APOB/Common/ApobCmn.h>
 #include <FCH/Common/FchCommon.h>
 #include <FCH/FchClass-api.h>
 #include <FCH/FchHwAcpi-api.h>
@@ -19,6 +22,7 @@
 #include "FchXhciCmn2Kl.h"
 #include "FchXhciIp2IpKl.h"
 #include <FCH/Common/FchReg.h>
+#include <string.h>
 
 void
 FchKLXhciInitS3EntryProgram (
@@ -749,6 +753,38 @@ FchKLXhciInitS3ExitProgram (
   FCH_TRACEPOINT(SIL_TRACE_EXIT, "Bus 0x%x\n", DieBusNum);
 }
 
+static
+SIL_STATUS
+FchKLXhciGetUsbFlags (
+  FCHUSB_INPUT_BLK   *FchUsbData
+  )
+{
+  SIL_STATUS            Status;
+  APOB_IP2IP_API        *ApobIp2IpApi;
+  APOB_ENV_FLAGS_STRUCT *ApobEntry;
+
+  if (SilGetIp2IpApi(SilId_ApobClass, (void **) &ApobIp2IpApi) != SilPass) {
+    return SilNotFound;
+  }
+
+  Status = ApobIp2IpApi->ApobAmdGetApobEntryInstance(APOB_GEN,
+    APOB_ENV_FLAGS_INFO_TYPE,
+    0,
+    0,
+    (APOB_TYPE_HEADER **) &ApobEntry
+    );
+  if (Status != SilPass) {
+    return Status;
+  }
+
+  memcpy(&FchUsbData->UsbFlag,
+    &ApobEntry->Flags.Reserved0,
+    sizeof(ApobEntry->Flags.Reserved0)
+    );
+
+  return Status;
+}
+
 /**
  * FchKLXhciInitBootProgram
  *
@@ -766,6 +802,10 @@ FchKLXhciInitBootProgram (
   )
 {
   FCH_TRACEPOINT(SIL_TRACE_ENTRY, "Bus 0x%x\n", DieBusNum);
+
+  if (FchKLXhciGetUsbFlags(FchUsbData) != SilPass) {
+    FCH_TRACEPOINT(SIL_TRACE_ERROR, "Could not obtain USB flags\n");
+  }
 
   if (FchUsbData->UsbFlag.SkipAllUSBHostAccess) {
     FCH_TRACEPOINT(SIL_TRACE_INFO, "Skip All USB Controller Access\n");
