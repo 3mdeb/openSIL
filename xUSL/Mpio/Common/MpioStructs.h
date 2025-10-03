@@ -414,6 +414,14 @@ typedef struct  {
   uint8_t                   Gen4FixedPreset     :4;  ///< Gen4 Fixed Preset
   uint8_t                   Gen5FixedPreset     :4;  ///< Gen5 Fixed Preset
   uint8_t                   Reserved4           :4;  ///< Reserved
+  uint8_t                   SetGen3ForcePreset  :1;   ///< Gen3 Fixed Preset Set
+  uint8_t                   SetGen4ForcePreset  :1;   ///< Gen4 Fixed Preset Set
+  uint8_t                   SetGen5ForcePreset  :1;   ///< Gen5 Fixed Preset Set
+  uint8_t                   Reserved5           :5;   ///< Reserved
+  uint8_t                   Gen3ForcePreset     :4;   ///< Gen3 Force Preset
+  uint8_t                   Gen4ForcePreset     :4;   ///< Gen4 Force Preset
+  uint8_t                   Gen5ForcePreset     :4;   ///< Gen5 Force Preset
+  uint8_t                   Reserved6           :4;   ///< Reserved
   uint16_t                  PsppPolicyDC;            ///< Pspp DC control
   uint16_t                  PsppPolicyAC;            ///< PSPP AC control
   uint8_t                   PsppDeviceType;          ///< Pspp Device Type
@@ -421,7 +429,7 @@ typedef struct  {
   uint8_t                   DisGen4EQPhase      :1;  ///< Gen4 Bypass phase2/3 EQ
   uint8_t                   TXDeEmphasisOride   :1;  ///< Override Gen2 MPIO deemphasis default
   uint8_t                   TXDeEmphasis        :2;  ///< Gen2 MPIO deemphasis setting
-  uint8_t                   Reserved5           :3;  ///< Reserved
+  uint8_t                   Reserved7           :3;  ///< Reserved
   struct {
     uint16_t                  DsTxPreset          :4;   ///< Gen3 Downstream Tx Preset
     uint16_t                  DsRxPresetHint      :3;   ///< Gen3 Downstream Rx Preset Hint
@@ -474,17 +482,17 @@ typedef struct  {
   uint8_t                   IsBmcLocation       :1;    ///< IsBmcLocation
   uint8_t                   SetEsmControl       :1;    ///< Set ESM Control
   uint8_t                   SetEsmSpeedBump     :1;    ///< Set Speed bump for ESM
-  uint8_t                   Reserved6           :1;    ///< Unused bits
+  uint8_t                   Reserved8           :1;    ///< Unused bits
   uint8_t                   I2CMuxInfo          :6;    ///< Legacy I2c switch
   uint8_t                   AlwaysExpose        :1;    ///< Always expose unused PCIE port
-  uint8_t                   Reserved7           :1;    ///< Unused bits
+  uint8_t                   Reserved9           :1;    ///< Unused bits
   uint16_t                  NpemEnable          :12;   ///< Controls NPEM Enable
-  uint16_t                  Reserved8           :4;    ///< Unused bits
+  uint16_t                  Reserved10          :4;    ///< Unused bits
   uint16_t                  NpemCapability      :12;   ///< Controls NPEM Capability
   uint8_t                   SwingMode           :3;    ///< PCIe Swing Mode
-  uint16_t                  Reserved9           :1;    ///< Unused bits
+  uint16_t                  Reserved11          :1;    ///< Unused bits
   uint16_t                  MpioAncDataIdx;            ///< Reserved for internal use only
-  uint8_t                   Reserved10;                ///< Reserved bits
+  uint8_t                   Reserved12;                ///< Reserved bits
 } MPIO_PORT_DATA;
 
 
@@ -745,6 +753,9 @@ typedef enum {
   MPIO_PP_GEN3_PRESET_MASK,         ///< Preset Mask 8GT. __10 bit value__
   MPIO_PP_GEN4_PRESET_MASK,         ///< Preset Mask 16GT. __10 bit value__
   MPIO_PP_GEN5_PRESET_MASK,         ///< Preset Mask 32GT. __10 bit value__
+  MPIO_PP_GEN3_FORCE_PRESET,        ///< Force Preset 8GT. __4 bit value__
+  MPIO_PP_GEN4_FORCE_PRESET,        ///< Preset Mask 16GT. __4 bit value__
+  MPIO_PP_GEN5_FORCE_PRESET,        ///< Preset Mask 32GT. __4 bit value__
   MPIO_PP_PSPP_DC,                  /**< Pspp DC control.
                                      *   @li __Applicable for client programs__
                                      */

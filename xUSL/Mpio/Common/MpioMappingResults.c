@@ -133,7 +133,7 @@ SrisPlatformConfig (
    * SRIS Autodetect
    * Default PCD config for all port
    */
-  if ((SilData->SrisAutoDetectMode != 0xFF) && ((SilData->SrisCfgType & 0x8) == 0)) {
+  if ((SilData->SrisAutoDetectMode != 0xF) && ((SilData->SrisCfgType & 0x8) == 0)) {
     Engine->Type.Port.SrisAutoDetectMode = SilData->SrisAutoDetectMode;
     Engine->Type.Port.SrisSkpIntervalSel = SilData->SrisSkpIntervalSel;
     Engine->Type.Port.SrisAutodetectFactor = SilData->SrisAutodetectFactor;
@@ -270,6 +270,18 @@ MpioInitEngineStruct (
     Engine->Type.Port.SetGen5FixedPreset = TopologyEntry->Port.SetGen5FixedPreset;
     Engine->Type.Port.Gen5FixedPreset = TopologyEntry->Port.Gen5FixedPreset;
   }
+  if (TopologyEntry->Port.SetGen3ForcePreset) {
+    Engine->Type.Port.SetGen3ForcePreset = TopologyEntry->Port.SetGen3ForcePreset;
+    Engine->Type.Port.Gen3ForcePreset = TopologyEntry->Port.Gen3ForcePreset;
+  }
+  if (TopologyEntry->Port.SetGen4ForcePreset) {
+    Engine->Type.Port.SetGen4ForcePreset = TopologyEntry->Port.SetGen4ForcePreset;
+    Engine->Type.Port.Gen4ForcePreset = TopologyEntry->Port.Gen4ForcePreset;
+  }
+  if (TopologyEntry->Port.SetGen5ForcePreset) {
+    Engine->Type.Port.SetGen5ForcePreset = TopologyEntry->Port.SetGen5ForcePreset;
+    Engine->Type.Port.Gen5ForcePreset = TopologyEntry->Port.Gen5ForcePreset;
+  }
   if (TopologyEntry->Port.PresetMaskCntl.SetPresetMask8Gt) {
     Engine->Type.Port.LaneEqualizationCntl.LcPresetMask8Gt = TopologyEntry->Port.PresetMaskCntl.PresetMask8Gt;
   }
@@ -368,8 +380,18 @@ MpioPortMapping (
       if (AskEntry->desc.ctrlType == ASK_TYPE_PCIe) {
         TopologyEntry = MpioFindTopoForAsk(GnbHandle, SocketTopology, AskEntry);
         if (TopologyEntry != NULL) {
+          // For OCP set status.port = dfc index
+          if (TopologyEntry->Port.LinkHotplug == PcieHotplugOCP) {
+            AskEntry->status.port = AskEntry->desc.link_attributes.dfc_index;
+            MPIO_TRACEPOINT(SIL_TRACE_INFO, "OCP AskEntry->status.port = %x\n", AskEntry->status.port);
+          }
           Engine = MpioFindEngineForAsk(GnbHandle, AskEntry);
           if (Engine != NULL) {
+            // For UBM set status.port = dfc index
+            if ((Engine->Type.Port.PortData.LinkHotplug == PcieHotplugUBM)) {
+              AskEntry->status.port = AskEntry->desc.link_attributes.dfc_index;
+              MPIO_TRACEPOINT (SIL_TRACE_INFO, "UBM AskEntry->status.port = %x\n", AskEntry->status.port);
+            }
             MpioInitEngineStruct(SilData, TopologyEntry, Engine, AskEntry);
             Handle = (GNB_HANDLE *) (NbioIp2Ip->PcieConfigGetParent(DESCRIPTOR_SILICON, &(Engine->Header)));
             PcieMapPortPciAddress(Engine, PortDevMap + (Handle->RBIndex * PortDevSize));

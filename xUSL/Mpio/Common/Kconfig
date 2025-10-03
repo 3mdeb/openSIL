@@ -145,7 +145,7 @@ config MPIO_SAVE_RESTORE_MODE
 # ------------------------------ PCIe Polling --------------------------
 choice CHOICE_ALLOW_PCIE_POLLING
     prompt  "Control to enable PCIe polling"
-    default CHOICE_ENABLE_PCIE_POLLING
+    default CHOICE_PCIE_POLLING_AUTO
     help
         Selection to allow PCIe RP to enter polling state
         Ref: typedef enum{} MPIO_ALLOW_PCIE_POLLING;
@@ -846,7 +846,7 @@ config MPIO_OPN_SPARE
 # ------------------------------ MPIO Ancillary Data Support --------------------------
 config MPIO_ANCILLARY_DATA_SUPPORT_ENABLE
     int  "Enable MPIO ancillary data support [1/0]"
-    default 0
+    default 1
     range 0 1
     help
         Used to enable MPIO ancillary data support.
@@ -908,7 +908,7 @@ config MPIO_EXPOSE_UNUSED_PCIE_PORTS
 # ------------------------------ Max PCIe Link Speed --------------------------
 choice CHOICE_MAX_PCIE_LINK_SPEED
     prompt  "Upper limit for PCIe link speed"
-    default CHOICE_NO_LINK_SPEED_LIMIT
+    default CHOICE_PCIE_LIMIT_AUTO
     help
         Define an upper limit for PCIe link speed.
         Ref: typedef enum{} MPIO_MAX_PCIE_LINK_SPEED;
@@ -948,6 +948,11 @@ config  CHOICE_PCIE_LIMIT_TO_GEN5
       The maximum speed of all PCIe links is limited to
       PCIe Gen5 speed.
 
+config  CHOICE_PCIE_LIMIT_AUTO
+    bool "Use default configuration"
+    help
+      Use default configuration for PCIe speed.
+
 endchoice
 
 ##  define the system variable that is used in the code
@@ -959,6 +964,7 @@ config MPIO_MAX_PCIE_LINK_SPEED
     default  3      if CHOICE_PCIE_LIMIT_TO_GEN3
     default  4      if CHOICE_PCIE_LIMIT_TO_GEN4
     default  5      if CHOICE_PCIE_LIMIT_TO_GEN5
+    default  255    if CHOICE_PCIE_LIMIT_AUTO
 
 # ------------------------------ SATA PHY Tuning --------------------------
 config MPIO_SATA_PHY_TUNING
@@ -971,7 +977,7 @@ config MPIO_SATA_PHY_TUNING
 # ------------------------------ Enable Compliance Mode for PCIe Ports --------------------------
 config PCIE_LINK_COMPLIANCE_MODE_ENABLE
     int  "Set all PCIe ports to compliance mode [1/0]"
-    default 1
+    default 0
     range 0 1
     help
         This control will configure all the PCIe ports to be in compliance mode.
@@ -1233,7 +1239,7 @@ config LINK_DISABLE_AT_POWER_OFF_DELAY
 # ------------------------------ PcdEnable2SpcGen4 --------------------------
 config MPIO_ENABLE_2SPC_GEN4
     int  "PcdEnable2SpcGen4 [1/0]"
-    default 0
+    default 1
     range 0 1
     help
         todo: Add help text for this setting.
@@ -1258,7 +1264,7 @@ config MPIO_FIFO_RD_PTR_OFFSET
 # ------------------------------ Enable SDXI feature --------------------------
 config MPIO_SDXI_ENABLE
     int  "Enable or disable SDXI [1/0]"
-    default 1
+    default 0
     range 0 1
     help
         Enable or disable SDXI feature.
@@ -1864,3 +1870,248 @@ config MPIO_GEN5_PCIE_LC_MASK_CONTROL_DEFAULT
     help
         This 32-bit value specifies the default value for the Gen5
         PCIE LC Preset Mask Control for all ports.
+
+# ------------------------------ Gen3 Force Preset Configuration --------------------------
+choice CHOICE_GEN3_PCIE_FORCE_PRESET
+    prompt  "Set the PCIe Gen3 Force Preset"
+    default CHOICE_GEN3_PCIE_FORCE_PRESET_DEFAULT
+    help
+        Overwrites link partner EQ phase 2 Gen3 force preset requests for all ports.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P0
+    bool "PCIe Gen3 Force present is 0"
+    help
+      The PCIe Gen3 Force present value is 0.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P1
+    bool "PCIe Gen3 Force present is 1"
+    help
+      The PCIe Gen3 Force present value is 1.
+
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P2
+    bool "PCIe Gen3 Force present is 2"
+    help
+      The PCIe Gen3 Force present value is 2.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P3
+    bool "PCIe Gen3 Force present is 3"
+    help
+      The PCIe Gen3 Force present value is 3.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P4
+    bool "PCIe Gen3 Force present is 4"
+    help
+      The PCIe Gen3 Force present value is 4.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P5
+    bool "PCIe Gen3 Force present is 5"
+    help
+      The PCIe Gen3 Force present value is 5.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P6
+    bool "PCIe Gen3 Force present is 6"
+    help
+      The PCIe Gen3 Force present value is 6.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P7
+    bool "PCIe Gen3 Force present is 7"
+    help
+      The PCIe Gen3 Force present value is 7.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P8
+    bool "PCIe Gen3 Force present is 8"
+    help
+      The PCIe Gen3 Force present value is 8.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_P9
+    bool "PCIe Gen3 Force present is 9"
+    help
+      The PCIe Gen3 Force present value is 9.
+
+config  CHOICE_GEN3_PCIE_FORCE_PRESET_DEFAULT
+    bool "PCIe Gen3 Force present is set to the default setting"
+    help
+      The PCIe Gen3 Force present value is set to
+      the default setting.
+
+endchoice
+
+##  define the system variable that is used in the code
+config MPIO_GEN3_PCIE_FORCE_PRESET
+    hex
+    default  0x00      if CHOICE_GEN3_PCIE_FORCE_PRESET_P0
+    default  0x01      if CHOICE_GEN3_PCIE_FORCE_PRESET_P1
+    default  0x02      if CHOICE_GEN3_PCIE_FORCE_PRESET_P2
+    default  0x03      if CHOICE_GEN3_PCIE_FORCE_PRESET_P3
+    default  0x04      if CHOICE_GEN3_PCIE_FORCE_PRESET_P4
+    default  0x05      if CHOICE_GEN3_PCIE_FORCE_PRESET_P5
+    default  0x06      if CHOICE_GEN3_PCIE_FORCE_PRESET_P6
+    default  0x07      if CHOICE_GEN3_PCIE_FORCE_PRESET_P7
+    default  0x08      if CHOICE_GEN3_PCIE_FORCE_PRESET_P8
+    default  0x09      if CHOICE_GEN3_PCIE_FORCE_PRESET_P9
+    default  0xFF      if CHOICE_GEN3_PCIE_FORCE_PRESET_DEFAULT
+
+# ------------------------------ Gen4 Force Preset Configuration --------------------------
+
+choice CHOICE_GEN4_PCIE_FORCE_PRESET
+    prompt  "Set the PCIe Gen4 Force Preset"
+    default CHOICE_GEN4_PCIE_FORCE_PRESET_DEFAULT
+    help
+        Overwrites link partner EQ phase 2 Gen4 force preset requests for all ports.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P0
+    bool "PCIe Gen4 Force present is 0"
+    help
+      The PCIe Gen4 Force present value is 0.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P1
+    bool "PCIe Gen4 Force present is 1"
+    help
+      The PCIe Gen4 Force present value is 1.
+
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P2
+    bool "PCIe Gen4 Force present is 2"
+    help
+      The PCIe Gen4 Force present value is 2.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P3
+    bool "PCIe Gen4 Force present is 3"
+    help
+      The PCIe Gen4 Force present value is 3.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P4
+    bool "PCIe Gen4 Force present is 4"
+    help
+      The PCIe Gen4 Force present value is 4.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P5
+    bool "PCIe Gen4 Force present is 5"
+    help
+      The PCIe Gen4 Force present value is 5.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P6
+    bool "PCIe Gen4 Force present is 6"
+    help
+      The PCIe Gen4 Force present value is 6.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P7
+    bool "PCIe Gen4 Force present is 7"
+    help
+      The PCIe Gen4 Force present value is 7.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P8
+    bool "PCIe Gen4 Force present is 8"
+    help
+      The PCIe Gen4 Force present value is 8.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_P9
+    bool "PCIe Gen4 Force present is 9"
+    help
+      The PCIe Gen4 Force present value is 9.
+
+config  CHOICE_GEN4_PCIE_FORCE_PRESET_DEFAULT
+    bool "PCIe Gen4 Force present is set to the default setting"
+    help
+      The PCIe Gen4 Force present value is set to
+      the default setting.
+
+endchoice
+
+##  define the system variable that is used in the code
+config MPIO_GEN4_PCIE_FORCE_PRESET
+    hex
+    default  0x00      if CHOICE_GEN4_PCIE_FORCE_PRESET_P0
+    default  0x01      if CHOICE_GEN4_PCIE_FORCE_PRESET_P1
+    default  0x02      if CHOICE_GEN4_PCIE_FORCE_PRESET_P2
+    default  0x03      if CHOICE_GEN4_PCIE_FORCE_PRESET_P3
+    default  0x04      if CHOICE_GEN4_PCIE_FORCE_PRESET_P4
+    default  0x05      if CHOICE_GEN4_PCIE_FORCE_PRESET_P5
+    default  0x06      if CHOICE_GEN4_PCIE_FORCE_PRESET_P6
+    default  0x07      if CHOICE_GEN4_PCIE_FORCE_PRESET_P7
+    default  0x08      if CHOICE_GEN4_PCIE_FORCE_PRESET_P8
+    default  0x09      if CHOICE_GEN4_PCIE_FORCE_PRESET_P9
+    default  0xFF      if CHOICE_GEN4_PCIE_FORCE_PRESET_DEFAULT
+
+# ------------------------------ Gen5 Force Preset Configuration --------------------------
+
+choice CHOICE_GEN5_PCIE_FORCE_PRESET
+    prompt  "Set the PCIe Gen5 Force Preset"
+    default CHOICE_GEN5_PCIE_FORCE_PRESET_DEFAULT
+    help
+        Overwrites link partner EQ phase 2 Gen5 force preset requests for all ports.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P0
+    bool "PCIe Gen5 Force present is 0"
+    help
+      The PCIe Gen5 Force present value is 0.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P1
+    bool "PCIe Gen5 Force present is 1"
+    help
+      The PCIe Gen5 Force present value is 1.
+
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P2
+    bool "PCIe Gen5 Force present is 2"
+    help
+      The PCIe Gen5 Force present value is 2.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P3
+    bool "PCIe Gen5 Force present is 3"
+    help
+      The PCIe Gen5 Force present value is 3.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P4
+    bool "PCIe Gen5 Force present is 4"
+    help
+      The PCIe Gen5 Force present value is 4.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P5
+    bool "PCIe Gen5 Force present is 5"
+    help
+      The PCIe Gen5 Force present value is 5.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P6
+    bool "PCIe Gen5 Force present is 6"
+    help
+      The PCIe Gen5 Force present value is 6.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P7
+    bool "PCIe Gen5 Force present is 7"
+    help
+      The PCIe Gen5 Force present value is 7.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P8
+    bool "PCIe Gen5 Force present is 8"
+    help
+      The PCIe Gen5 Force present value is 8.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_P9
+    bool "PCIe Gen5 Force present is 9"
+    help
+      The PCIe Gen5 Force present value is 9.
+
+config  CHOICE_GEN5_PCIE_FORCE_PRESET_DEFAULT
+    bool "PCIe Gen5 Force present is set to the default setting"
+    help
+      The PCIe Gen5 Force present value is set to
+      the default setting.
+
+endchoice
+
+##  define the system variable that is used in the code
+config MPIO_GEN5_PCIE_FORCE_PRESET
+    hex
+    default  0x00      if CHOICE_GEN5_PCIE_FORCE_PRESET_P0
+    default  0x01      if CHOICE_GEN5_PCIE_FORCE_PRESET_P1
+    default  0x02      if CHOICE_GEN5_PCIE_FORCE_PRESET_P2
+    default  0x03      if CHOICE_GEN5_PCIE_FORCE_PRESET_P3
+    default  0x04      if CHOICE_GEN5_PCIE_FORCE_PRESET_P4
+    default  0x05      if CHOICE_GEN5_PCIE_FORCE_PRESET_P5
+    default  0x06      if CHOICE_GEN5_PCIE_FORCE_PRESET_P6
+    default  0x07      if CHOICE_GEN5_PCIE_FORCE_PRESET_P7
+    default  0x08      if CHOICE_GEN5_PCIE_FORCE_PRESET_P8
+    default  0x09      if CHOICE_GEN5_PCIE_FORCE_PRESET_P9
+    default  0xFF      if CHOICE_GEN5_PCIE_FORCE_PRESET_DEFAULT

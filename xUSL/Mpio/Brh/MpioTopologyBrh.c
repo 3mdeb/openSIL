@@ -65,7 +65,7 @@ MpioTopologyWorkaroundsBrh (
           EngineDescriptor->Port.LinkAspm = SilData->PcieLinkAspmAllPort;
         }
         /*
-         * Set SATA Channel Type
+         * PCIe Link Compliance Mode
          */
         if (SilData->PcieLinkComplianceModeAllPorts) {
           EngineDescriptor->Port.MiscControls.LinkComplianceMode = 1;
@@ -86,7 +86,15 @@ MpioTopologyWorkaroundsBrh (
           EngineDescriptor->Port.PresetMaskCntl.SetPresetMask8Gt = 1;
           EngineDescriptor->Port.PresetMaskCntl.PresetMask8Gt = SilData->PcieLaneEqPresetMask8Gt & 0x3FF;
         }
-
+        // Force preset
+        if (SilData->PcieLaneEqForcePreset8Gt != 0xFF) {
+          EngineDescriptor->Port.SetGen3ForcePreset = 1;
+          EngineDescriptor->Port.Gen3ForcePreset = SilData->PcieLaneEqForcePreset8Gt;
+        }
+        // Hot-plug support
+        if (SilData->AmdHotPlugSupport != 0xF) {
+          EngineDescriptor->Port.LinkHotplug = 0;
+        }
         //
         // Preset Settings All Ports (Gen4)
         //
@@ -109,6 +117,11 @@ MpioTopologyWorkaroundsBrh (
           EngineDescriptor->Port.PresetMaskCntl.PresetMask16Gt = SilData->PcieLaneEqPresetMask16Gt & 0x3FF;
         }
 
+        // Force preset
+        if (SilData->PcieLaneEqForcePreset16Gt != 0xFF) {
+          EngineDescriptor->Port.SetGen4ForcePreset = 1;
+          EngineDescriptor->Port.Gen4ForcePreset = SilData->PcieLaneEqForcePreset16Gt;
+        }
         //
         // Preset Settings All Ports (Gen5)
         //
@@ -129,6 +142,12 @@ MpioTopologyWorkaroundsBrh (
         if (SilData->PcieLaneEqPresetMask32GtConfig != 0xFF) {
           EngineDescriptor->Port.PresetMaskCntl.SetPresetMask32Gt = 1;
           EngineDescriptor->Port.PresetMaskCntl.PresetMask32Gt = SilData->PcieLaneEqPresetMask32Gt & 0x3FF;
+        }
+
+        // Force preset
+        if (SilData->PcieLaneEqForcePreset32Gt != 0xFF) {
+          EngineDescriptor->Port.SetGen5ForcePreset = 1;
+          EngineDescriptor->Port.Gen5ForcePreset = SilData->PcieLaneEqForcePreset32Gt;
         }
 
         // Link Speed Capability

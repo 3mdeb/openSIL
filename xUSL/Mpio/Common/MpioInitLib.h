@@ -407,7 +407,9 @@ typedef struct {
   uint32_t    Reserved0                            :1;
   uint32_t    RunXgmiSafeRecoveryOdt               :1;
   uint32_t    RunZcal                              :1;
-  uint32_t    padDword0                            :8;
+  uint32_t    XgmiAsyncFifoModeEnable              :1;
+  uint32_t    EnforceGen5MaxSpeedReporting         :1;
+  uint32_t    padDword0                            :6;
 
   /*
    * DWORD 1 - Power Management
@@ -449,7 +451,10 @@ typedef struct {
    * DWORD 5 - Future
    */
   uint32_t     Enable2SpcGen5                       :1;
-  uint32_t     padDword5                            :31;
+  uint32_t     DfeTapEnable                         :1;
+  uint32_t     DfeTapCount                          :2;
+  uint32_t     DisMarginCntl                        :1;
+  uint32_t     padDword5                            :27;
 } MPIO_GLOBAL_CONFIG;
 
 /// Link Attributes - Specifies link details

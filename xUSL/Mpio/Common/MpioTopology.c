@@ -321,6 +321,18 @@ MpioManageEngineDescriptor (
       EngineDescriptor->Port.PresetMaskCntl.SetPresetMask32Gt = 1;
       EngineDescriptor->Port.PresetMaskCntl.PresetMask32Gt = (uint32_t)(PortParam->ParamValue & 0x3FF);
       break;
+    case MPIO_PP_GEN3_FORCE_PRESET:
+      EngineDescriptor->Port.SetGen3ForcePreset = 1;
+      EngineDescriptor->Port.Gen3ForcePreset = (uint8_t)PortParam->ParamValue;
+      break;
+    case MPIO_PP_GEN4_FORCE_PRESET:
+      EngineDescriptor->Port.SetGen4ForcePreset = 1;
+      EngineDescriptor->Port.Gen4ForcePreset = (uint8_t)PortParam->ParamValue;
+      break;
+    case MPIO_PP_GEN5_FORCE_PRESET:
+      EngineDescriptor->Port.SetGen5ForcePreset = 1;
+      EngineDescriptor->Port.Gen5ForcePreset = (uint8_t)PortParam->ParamValue;
+      break;
     case MPIO_PP_GEN4_DLF_CAP_DISABLE:
       EngineDescriptor->Port.Gen4Features |= (((uint8_t)PortParam->ParamValue & 1)? BIT_8(1) : 0);
       break;

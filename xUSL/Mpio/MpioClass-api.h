@@ -113,6 +113,9 @@ typedef struct {
   uint8_t     LinkDisableAtPowerOffDelay;
   bool        Enable2SpcGen4;
   bool        Enable2SpcGen5;
+  bool        DfeTapEnable;
+  uint8_t     DfeTapCount;
+  bool        DisMarginCntl;
   bool        CfgPcieLoopbackMode;
   bool        PcieNonPcieCompliantTrainingFailureSupport;
   uint8_t     CfgDxioTxFIFORdPtrOffset;
@@ -131,10 +134,14 @@ typedef struct {
   uint8_t     PcieGen5LaneEqDsTxPreset;       ///< Downstream Tx Preset (Gen5)
   uint8_t     PcieLaneEqPresetMask32GtConfig; ///< Configuration for Gen5 Preset Mask for all ports
   uint32_t    PcieLaneEqPresetMask32Gt;       ///< Gen5 Preset Mask
+  uint8_t     PcieLaneEqForcePreset8Gt;       ///< Force Preset set (Gen3)
+  uint8_t     PcieLaneEqForcePreset16Gt;      ///< Force Preset set (Gen4)
+  uint8_t     PcieLaneEqForcePreset32Gt;      ///< Force Preset set (Gen5)
   bool        Master7bitSteeringTag;          ///< 7-bit Steering Tag in SDP ReqAddr for writes with TPH
   uint8_t     AmdCXlEarlyLinkTraining;        ///< Enable/Disable Early CXL Link Training
   bool        AmdHotPlugPDSettle;             ///< Includes presence detect state in hot plug settling time.
   uint8_t     AmdHotplugPortReset;            ///< Controls Hotplug Port Reset mode
+  uint8_t     AmdHotPlugSupport;
   bool        AmdAllowComplianceForHpPort;    ///< Enable PCIe Hot-plug port to enter Polling Compliance state
   uint8_t     TargetPcieGenSpeed;             ///< Targets the GEN Speed for all PCIe Links
   uint8_t     AmdDlfCapEnV2;
@@ -153,6 +160,13 @@ typedef struct {
   bool        PcieIdeCapSup;
   bool        SafeRecoveryBER;
   bool        PeriodicCal;
+  bool        LimitHpDevicesToPcieBootSpeed;
+  uint8_t     CfgDxioCplTimeout;
+  bool        CfgDxioAllowCompPass;
+  bool        AmdExposeSFIDRSSupport;
+  bool        AmdExposeSFIOOBSupport;
+  bool        CxlSyncHeaderByPassCompMode;
+  bool        CfgPCntlDeskewEmptymode;
   PCIe_DPC_STATUS_DATA    DpcStatusData;    ///< DPC status
   PCIe_PLATFORM_TOPOLOGY  PcieTopologyData; ///< PCIe Platform topology
 } MPIOCLASS_INPUT_BLK;

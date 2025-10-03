@@ -36,10 +36,12 @@ IsEarlyTrainedBmcInWrapperBrh (
 #define SIL_RESERVED_0469      0x67
 #define SIL_RESERVED_0408                                   0x7c
 #define SIL_RESERVED_0409                  0x82
+#define SIL_RESERVED_1774                       0x9d
 #define SIL_RESERVED_0466                                   0xa8
 #define SIL_RESERVED_0422                                   0xab
 #define SIL_RESERVED_0429                            0xad
 #define SIL_RESERVED_0428                   0xaf
+#define SIL_RESERVED_1778  0xb0
 #define SIL_RESERVED_0415                             0xc1
 #define SIL_RESERVED_0416                                   0xc4
 #define SIL_RESERVED_0414                                0xc5
@@ -90,9 +92,11 @@ IsEarlyTrainedBmcInWrapperBrh (
 #define SIL_RESERVED_0421                        0x1aa
 #define SIL_RESERVED_0465                                 0x1ad
 #define SIL_RESERVED_0457                       0x1ae
+#define SIL_RESERVED_1773                       0x1af
 #define SIL_RESERVED_0423                                 0x1b0
 #define SIL_RESERVED_0424                                  1
 #define SIL_RESERVED_0437    0x1b3
 #define SIL_RESERVED_0438  0x1c2
+#define SIL_RESERVED_1775  0x1c4
 #define SIL_RESERVED_0439        0x1c8
 #define HOLD_TRAINING_B_INDEX  0x1ca

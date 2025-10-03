@@ -18,6 +18,7 @@
 #include <Nbio/Brh/include/NbifEpFnCfgReg.h>
 #include <Nbio/Brh/include/NbifEpF0CfgReg.h>
 #include <Nbio/Brh/GnbRegistersBrh.h>
+#include <Nbio/Brh/NbioBrh.h>
 #include <Nbio/Brh/NbioPcieComplexDataBrh.h>
 #include <Nbio/Brh/include/PcieCoreReg.h>
 #include <Nbio/NbioIp2Ip.h>
@@ -41,6 +42,26 @@ typedef struct {
   bool  field0;
   bool  field1;
 } SIL_RESERVED_STRUCT_0038;
+
+typedef struct {
+    uint8_t    field0;
+    uint8_t    field1;
+    uint8_t    field2;
+    uint8_t    field3;
+} SIL_RESERVED_STRUCT_0039;
+
+SIL_RESERVED_STRUCT_0039 ForcePresetTable[] = {
+  {0,   0x0, 0x24, 0xC},
+  {1,   0x0, 0x28, 0x8},
+  {2,   0x0, 0x26, 0xA},
+  {3,   0x0, 0x2A, 0x6},
+  {4,   0x0, 0x30, 0x0},
+  {5,   0x4, 0x2C, 0x0},
+  {6,   0x6, 0x2A, 0x0},
+  {7,   0x5, 0x21, 0xA},
+  {8,   0x6, 0x23, 0x7},
+  {9,   0x8, 0x28, 0x0}
+};
 
 /**--------------------------------------------------------------------
  *
@@ -127,6 +148,15 @@ MpioCfgGlobalConfigBrh (
   // PCIe SPC Gen5
   GlobalConfig->Enable2SpcGen5 = SilData->Enable2SpcGen5 ? 1 : 0;
 
+  // DFE TAP Enable
+  GlobalConfig->DfeTapEnable = SilData->DfeTapEnable ? 1 : 0;
+
+  // DFE TAP Count
+  GlobalConfig->DfeTapCount = SilData->DfeTapCount;
+
+  // Disable Margin Control
+  GlobalConfig->DisMarginCntl = SilData->DisMarginCntl;
+
   // Non-PCIe Compliant Support
   GlobalConfig->EnablePcieNonCompliantWa = SilData->PcieNonPcieCompliantTrainingFailureSupport ? 1 : 0;
 
@@ -144,6 +174,11 @@ MpioCfgGlobalConfigBrh (
   GlobalConfig->RunZcal = (SilData->PeriodicCal) ? 1 : 0;
   MPIO_TRACEPOINT(SIL_TRACE_INFO, "Periodic Zcal: %x\n", GlobalConfig->RunZcal);
 
+  GlobalConfig->XgmiAsyncFifoModeEnable = 0;
+
+  // Enforce Gen5 max speed reporting
+  GlobalConfig->EnforceGen5MaxSpeedReporting = SilData->LimitHpDevicesToPcieBootSpeed ? 0 : 1;
+  MPIO_TRACEPOINT(SIL_TRACE_INFO, "Limit hotplug devices to PCIe boot speed: %x\n", GlobalConfig->EnforceGen5MaxSpeedReporting);
 }
 
 /*----------------------------------------------------------------------------------------*/
@@ -216,6 +251,14 @@ EarlyTrainingMpioCfgBeforeReconfigWrapperBrh (
     ? 0 : 1) << SIL_RESERVED_1510,
       0
     );
+
+  // Receiver Error report
+  MpioSmnPrivateRegRMW(GnbHandle,
+    WRAP_SPACE (GnbHandle, Wrapper, SIL_RSVD_ADDR_1A380008),
+    (uint32_t) ~(SIL_RESERVED_1302),
+    (SilData->CfgRcvErrEnable ? 1 : 0) << SIL_RESERVED_1303,
+    0
+  );
 }
 
 /*
@@ -223,6 +266,45 @@ EarlyTrainingMpioCfgBeforeReconfigWrapperBrh (
  * Timepoint after port mapping and before reconfig
  *=========================================================================================
  */
+
+/*----------------------------------------------------------------------------------------*/
+/**
+ * Per-Engine Callback for All ports before bifurcation
+ *
+ *
+ *
+ * @param[in]     Engine  Engine configuration info
+ * @param[in,out] Buffer  Buffer pointer
+ * @param[in]     Pcie    PCIe configuration info
+ */
+static void
+MpioCfgBeforeReconfigCallbackAllPorts (
+  PCIe_ENGINE_CONFIG                *Engine,
+  void                              *Buffer,
+  PCIe_WRAPPER_CONFIG               *Wrapper
+  )
+{
+  GNB_HANDLE          *GnbHandle;
+  MPIOCLASS_INPUT_BLK   *SilData;
+
+  /*
+   * Get IP block data
+   */
+  SilData = (MPIOCLASS_INPUT_BLK *)xUslFindStructure(SilId_MpioClass, 0);
+  assert(SilData != NULL);
+
+  GnbHandle = (GNB_HANDLE *) PcieConfigGetParentSilicon (Wrapper);
+
+  MPIO_TRACEPOINT(SIL_TRACE_ENTRY, "Enter\n");
+  if (SilData->CfgDxioCplTimeout != 0xFF) {
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, Engine->Type.Port.PortId, SIL_RESERVED_1492),
+      (uint32_t) ~SIL_RESERVED_1772,
+      (SilData->CfgDxioAllowCompPass ? 1 : 0) << SIL_RESERVED_1771,
+      0
+      );
+  }
+}
 
 /**-------------------------------------------------------------------
  *
@@ -571,6 +653,28 @@ MpioCfgBeforeReconfigCallbackBrh (
         1,
         Wrapper->WrapId
         );
+      WritePcieStrapBrh (
+          GnbHandle,
+          PORT_STRAP_INDEX(SIL_RESERVED_1773, Engine->Type.Port.PortId),
+          1,
+          Wrapper->WrapId
+        );
+      if (SilData->AmdExposeSFIDRSSupport) {
+        WritePcieStrapBrh (
+          GnbHandle,
+          PORT_STRAP_INDEX(SIL_RESERVED_1774, Engine->Type.Port.PortId),
+          1,
+          Wrapper->WrapId
+        );
+      }
+      if (SilData->AmdExposeSFIOOBSupport) {
+        WritePcieStrapBrh (
+          GnbHandle,
+          PORT_STRAP_INDEX(SIL_RESERVED_0457, Engine->Type.Port.PortId),
+          1,
+          Wrapper->WrapId
+        );
+      }
     }
 
     // RTM Margining Support
@@ -725,6 +829,15 @@ MpioCfgBeforeReconfigCallbackBrh (
         Wrapper->WrapId
         );
 
+      /*
+       * SIL_RESERVED_1775 = 0x1
+       */
+      WritePcieStrapBrh(GnbHandle,
+        PORT_STRAP_INDEX(SIL_RESERVED_1775, Engine->Type.Port.PortId),
+        (SilData->CxlSyncHeaderByPassCompMode ? 1 : 0),
+        Wrapper->WrapId
+        );
+
       // Temp Gen5 Advertisement to enumerate as a CXL device
       MpioSmnPrivateRegRMW(GnbHandle,
         PORT_SPACE(GnbHandle,
@@ -735,6 +848,18 @@ MpioCfgBeforeReconfigCallbackBrh (
         (uint32_t) ~(SIL_RESERVED_0497),
         ((SilData->CxlTempGen5AdvertAltPtcl? 1 : 0 ) <<
           SIL_RESERVED_0498),
+        0
+        );
+
+      // ARBMUX Skid Buffer
+      MpioSmnPrivateRegRMW(GnbHandle,
+        PORT_SPACE (GnbHandle,
+        Wrapper,
+        (Engine->Type.Port.PortId),
+        SIL_RESERVED_0508
+        ),
+        (uint32_t) ~(SIL_RESERVED_1776),
+        (1 << SIL_RESERVED_1777),
         0
         );
     }
@@ -829,6 +954,13 @@ MpioCfgWrapperBeforeBifurcationBrh (
   PortStateInWrapper.field0 = false;
   PortStateInWrapper.field1 = false;
 
+  NbioIp2Ip->PcieConfigRunProcForAllEnginesInWrapper(
+    DESCRIPTOR_PCIE_ENGINE,
+    MpioCfgBeforeReconfigCallbackAllPorts,
+    (void *) &PortStateInWrapper,
+    Wrapper
+    );
+
   if (Wrapper->IsEarlyConfigured) {
     if (IsEarlyTrainedBmcInWrapperBrh(Wrapper, GnbHandle)) {
       EarlyTrainingMpioCfgBeforeReconfigWrapperBrh(Wrapper, GnbHandle);
@@ -884,8 +1016,8 @@ MpioCfgWrapperBeforeBifurcationBrh (
   }
 
   if ((SilData->CfgSevSnpSupport == true) || \
-    (SilData->CfgSevTioSupport == true) || \
-    (SilData->PcieIdeCapSup == true)) {
+      (SilData->CfgSevTioSupport == true) || \
+      (SilData->PcieIdeCapSup == true)) {
     WritePcieStrapBrh(GnbHandle,
       SIL_RESERVED_0429,
       1,
@@ -898,6 +1030,18 @@ MpioCfgWrapperBeforeBifurcationBrh (
         0
       );
   } else {
+    WritePcieStrapBrh (
+      GnbHandle,
+      SIL_RESERVED_0429,
+      1,
+      Wrapper->WrapId
+    );
+    WritePcieStrapBrh (
+      GnbHandle,
+      SIL_RESERVED_0428,
+      1,
+      Wrapper->WrapId
+    );
     MpioSmnPrivateRegRMW(GnbHandle,
       WRAP_SPACE(GnbHandle, Wrapper, SIL_RSVD_ADDR_1A383020),
       (uint32_t) ~(SIL_RESERVED_1509),
@@ -906,11 +1050,14 @@ MpioCfgWrapperBeforeBifurcationBrh (
       );
   }
 
-  WritePcieStrapBrh(GnbHandle,
-    SIL_RESERVED_0428,
-    1,
-    Wrapper->WrapId
-    );
+  if (SilData->CfgSevTioSupport == true) {
+    WritePcieStrapBrh(
+      GnbHandle,
+      SIL_RESERVED_1778,
+      1,
+      Wrapper->WrapId
+      );
+  }
 
   if (PortStateInWrapper.field1) {
     /*
@@ -1050,6 +1197,7 @@ MpioCfgAfterReconfigCallbackBrh (
   SIL_RESERVED_UNION_0035                          PcieSdpCtrl;
   uint32_t                                      Value;
   uint32_t                                      Index;
+  uint8_t                                       ForcePreset;
 
   /*
    * Get IP block data
@@ -1270,6 +1418,43 @@ MpioCfgAfterReconfigCallbackBrh (
   }
 
   /*
+   * Gen3 Force Preset
+   */
+  if(Engine->Type.Port.SetGen3ForcePreset) {
+
+    // Valid values 0-9
+    ForcePreset = Engine->Type.Port.Gen3ForcePreset > 9 ? 0 : Engine->Type.Port.Gen3ForcePreset;
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A3402E0),
+      (uint32_t) ~(SIL_RESERVED_1781),
+      ForcePresetTable[ForcePreset].field1 << SIL_RESERVED_1782,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A3402E0),
+      (uint32_t) ~(SIL_RESERVED_1783),
+      ForcePresetTable[ForcePreset].field2 << SIL_RESERVED_1784,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A3402E0),
+      (uint32_t) ~(SIL_RESERVED_1785),
+      ForcePresetTable[ForcePreset].field3 << SIL_RESERVED_1786,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A3402E0),
+      (uint32_t) ~(SIL_RESERVED_1779),
+      1 << SIL_RESERVED_1780,
+      0
+    );
+  }
+
+  /*
    * Gen4 Fixed Preset
    */
   if (Engine->Type.Port.SetGen4FixedPreset) {
@@ -1289,6 +1474,42 @@ MpioCfgAfterReconfigCallbackBrh (
   }
 
   /*
+   * Gen4 Force Preset
+   */
+  if (Engine->Type.Port.SetGen4ForcePreset) {
+
+    ForcePreset = Engine->Type.Port.Gen4ForcePreset > 9 ? 0 : Engine->Type.Port.Gen4ForcePreset ; //Valid values 0-9
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A34037C),
+      (uint32_t) ~(SIL_RESERVED_1781),
+      ForcePresetTable[ForcePreset].field1 << SIL_RESERVED_1782,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A34037C),
+      (uint32_t) ~(SIL_RESERVED_1783),
+      ForcePresetTable[ForcePreset].field2 << SIL_RESERVED_1784,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A34037C),
+      (uint32_t) ~(SIL_RESERVED_1785),
+      ForcePresetTable[ForcePreset].field3 << SIL_RESERVED_1786,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A34037C),
+      (uint32_t) ~(SIL_RESERVED_1779),
+      1 << SIL_RESERVED_1780,
+      0
+    );
+  }
+
+  /*
    * Gen5 Fixed Preset
    */
   if (Engine->Type.Port.SetGen5FixedPreset) {
@@ -1305,6 +1526,42 @@ MpioCfgAfterReconfigCallbackBrh (
       (Engine->Type.Port.Gen5FixedPreset << SIL_RESERVED_1353),
       0
       );
+  }
+
+  /*
+   * Gen5 Force Preset
+   */
+  if(Engine->Type.Port.SetGen5ForcePreset) {
+
+    ForcePreset = Engine->Type.Port.Gen5ForcePreset > 9 ? 0 : Engine->Type.Port.Gen5ForcePreset ; //Valid values 0-9
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A340418),
+      (uint32_t) ~(SIL_RESERVED_1781),
+      ForcePresetTable[ForcePreset].field1 << SIL_RESERVED_1782,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A340418),
+      (uint32_t) ~(SIL_RESERVED_1783),
+      ForcePresetTable[ForcePreset].field2 << SIL_RESERVED_1784,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A340418),
+      (uint32_t) ~(SIL_RESERVED_1785),
+      ForcePresetTable[ForcePreset].field3 << SIL_RESERVED_1786,
+      0
+    );
+
+    MpioSmnPrivateRegRMW(GnbHandle,
+      PORT_SPACE (GnbHandle, Wrapper, (Engine->Type.Port.PortId), SIL_RSVD_ADDR_1A340418),
+      (uint32_t) ~(SIL_RESERVED_1779),
+      1 << SIL_RESERVED_1780,
+      0
+    );
   }
 
   /*
@@ -1554,6 +1811,7 @@ MpioCfgWrapperAfterBifurcationBrh (
 {
   MPIOCLASS_INPUT_BLK   *SilData;
   NBIO_IP2IP_API        *NbioIp2Ip;
+  uint16_t              Index;
 
   /*
    * Get IP block data
@@ -1627,6 +1885,72 @@ MpioCfgWrapperAfterBifurcationBrh (
       0
       );
   }
+
+  if (SilData->CfgSevTioSupport && !IsEarlyTrainedBmcInWrapperBrh(Wrapper, GnbHandle)) {
+    for (Index = 0; Index < 9; Index +=2)  {
+      MpioSmnPrivateRegRMW(GnbHandle,
+        WRAP_SPACE (GnbHandle, Wrapper, SIL_RSVD_ADDR_1A383000) + (Index * 2),
+        (uint32_t) ~(SIL_RESERVED_1787 | ((Index < 8 ? SIL_RESERVED_1787 : 0) << 16)),
+        (Index < 8 ? 0x10001 : 1) << SIL_RESERVED_1788,
+        0
+        );
+    }
+  }
+
+ if (!SilData->CfgPCntlDeskewEmptymode) {
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1503),
+      (uint32_t)~SIL_RESERVED_1789,
+      (0 << SIL_RESERVED_1790),
+      0
+    );
+  }
+
+  if (IsCpuStepping (AMD_REV_F1A_BRH_CX) && IsCpuFamily (AMD_FAMILY_BRH) &&
+      (Wrapper->WrapId == 0)) {
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1503),
+      (uint32_t) ~(SIL_RESERVED_1791),
+      (0x1 << SIL_RESERVED_1792),
+      0
+    );
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1489),
+      (uint32_t) ~(SIL_RESERVED_1798),
+      (0x1 << SIL_RESERVED_1799),
+      0
+    );
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1793),
+      (uint32_t) ~(SIL_RESERVED_1800),
+      (0x1 << SIL_RESERVED_1801),
+      0
+    );
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1794),
+      (uint32_t) ~(SIL_RESERVED_1800),
+      (0x1 << SIL_RESERVED_1801),
+      0
+    );
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1795),
+      (uint32_t) ~(SIL_RESERVED_1802),
+      (0x1 << SIL_RESERVED_1803),
+      0
+    );
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1489),
+      (uint32_t) ~(SIL_RESERVED_1796),
+      (0x1 << SIL_RESERVED_1797),
+      0
+    );
+    MpioSmnPrivateRegRMW(GnbHandle,
+      WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1793),
+      (uint32_t) ~(SIL_RESERVED_1796),
+      (0x1 << SIL_RESERVED_1797),
+      0
+    );
+  }
 }
 
 //=========================================================================================
@@ -1656,6 +1980,8 @@ SubsystemIdSettingBrh (
   uint32_t      SubsystemDeviceId;
   uint32_t      SubsystemVendorId;
   MPIOCLASS_INPUT_BLK   *SilData;
+  PCIe_WRAPPER_CONFIG   *Wrapper;
+  PCIe_ENGINE_CONFIG    *Engine;
 
   /*
    * Get IP block data
@@ -1683,19 +2009,57 @@ SubsystemIdSettingBrh (
   }
 
   /*
-   * IOMMU
+   * PCIERCCFG Adapter
    */
-  Value = SilData->CfgIommuSsid;
+  SubsystemDeviceId = SilData->AmdPcieSubsystemDeviceID;
+  SubsystemVendorId = SilData->AmdPcieSubsystemVendorID;
+  Value = (SubsystemDeviceId << 16) | SubsystemVendorId;
   if (Value != 0) {
-    MPIO_TRACEPOINT(SIL_TRACE_INFO, "CfgIommuSsid = %x\n", Value);
-    xUSLSmnWrite(GnbHandle->Address.Address.Segment,
-      GnbHandle->Address.Address.Bus,
-      NBIO_SPACE(GnbHandle, SIL_RSVD_ADDR_13F00078),
-      Value
-      );
+    MPIO_TRACEPOINT (SIL_TRACE_INFO, "Root Port SSID = %x\n", Value);
+    Wrapper = PcieConfigGetChildWrapper (GnbHandle);
+    while (Wrapper != NULL) {
+      Engine = PcieConfigGetChildEngine (Wrapper);
+      while (Engine != NULL) {
+        MpioSmnPrivateRegRMW(GnbHandle,
+          PORT_SPACE (GnbHandle, Wrapper, Engine->Type.Port.PortId, SIL_RESERVED_1609),
+          0,
+          Value,
+          0
+        );
+        Engine = PcieLibGetNextDescriptor (Engine);
+      }
+      Wrapper = PcieLibGetNextDescriptor (Wrapper);
+    }
   }
 
-  if ((GnbHandle->RBIndex * 1) == 0) {
+  /*
+   * IOMMU
+   */
+  if (GnbHandle->RBIndex < 4) {
+    Value = SilData->CfgIommuSsid;
+    if (Value != 0) {
+      MPIO_TRACEPOINT(SIL_TRACE_INFO, "CfgIommuSsid = %x\n", Value);
+      xUSLSmnWrite(GnbHandle->Address.Address.Segment,
+        GnbHandle->Address.Address.Bus,
+        NBIO_SPACE(GnbHandle, SIL_RSVD_ADDR_13F00078),
+        Value
+        );
+    }
+    /*
+     * NBIF Dummy Functions
+     */
+    Value = SilData->CfgNbifF0Ssid;
+    if (Value != 0) {
+      MPIO_TRACEPOINT(SIL_TRACE_INFO, "CfgNbifF0Ssid = %x\n", Value);
+      xUSLSmnWrite(GnbHandle->Address.Address.Segment,
+        GnbHandle->Address.Address.Bus,
+        NBIO_SPACE(GnbHandle, SIL_RESERVED_0822),
+        Value
+        );
+    }
+  }
+
+  if (GnbHandle->RBIndex == 0) {
     /*
      * PSPCCP
      */
@@ -1723,26 +2087,18 @@ SubsystemIdSettingBrh (
     }
 
     /*
-     * NBIF Dummy Functions
+     * NBIF2 Dummy Functions
      */
     Value = SilData->CfgNbifF0Ssid;
     if (Value != 0) {
-      MPIO_TRACEPOINT(SIL_TRACE_INFO, "CfgNbifF0Ssid = %x\n", Value);
-      xUSLSmnWrite(GnbHandle->Address.Address.Segment,
-        GnbHandle->Address.Address.Bus,
-        NBIO_SPACE(GnbHandle, SIL_RESERVED_0822),
-        Value
-        );
-
-      xUSLSmnWrite(GnbHandle->Address.Address.Segment,
-        GnbHandle->Address.Address.Bus,
-        NBIO_SPACE(GnbHandle, SIL_RESERVED_0823),
-        Value
-        );
-
       xUSLSmnWrite(GnbHandle->Address.Address.Segment,
         GnbHandle->Address.Address.Bus,
         NBIO_SPACE(GnbHandle, SIL_RESERVED_0824),
+        Value
+        );
+      xUSLSmnWrite(GnbHandle->Address.Address.Segment,
+        GnbHandle->Address.Address.Bus,
+        NBIO_SPACE(GnbHandle, SIL_RESERVED_1804),
         Value
         );
     }
@@ -1858,6 +2214,13 @@ PcieCommonCoreConfigurationBrh (
     WRAP_SPACE(GnbHandle, Wrapper, SIL_RESERVED_1508),
     (uint32_t) ~(SIL_RESERVED_1458 | SIL_RESERVED_1460),
     (0x0 << SIL_RESERVED_1459 | 0x1 << SIL_RESERVED_1461),
+    0
+    );
+
+  MpioSmnPrivateRegRMW(GnbHandle,
+    WRAP_SPACE (GnbHandle, Wrapper, SIL_RESERVED_1806),
+    (uint32_t) ~(SIL_RESERVED_1809 | SIL_RESERVED_1807),
+    (0x0 << SIL_RESERVED_1810 | 0x0 << SIL_RESERVED_1808),
     0
     );
 
