@@ -36,6 +36,7 @@
 #define PROPERTY_PRESENT_SST                            0x00400000ull
 
 #define SIL_RESERVED_1754    0x00800000ull
+#define PROPERTY_SB_NOT_PRESENT                         0x01000000ull
 
 #define PROPERTY_DEFAULT_DEVICE_PRESENCE  PROPERTY_PRESENT_IOHC | \
         PROPERTY_PRESENT_SYSHUB | \

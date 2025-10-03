@@ -90,7 +90,17 @@ NonPciBarInit (
   uint32_t       MemorySize,
   bool           Enable,
   bool           LockSettings,
-  bool            Above4G
+  bool           Above4G
+  );
+
+void
+NonPciPspBarInit (
+  GNB_HANDLE     *GnbHandle,
+  uint32_t       MmioBarLow,
+  uint32_t       MmioBarHigh,
+  uint32_t       MemorySize,
+  bool           Enable,
+  bool           LockSettings
   );
 
 void

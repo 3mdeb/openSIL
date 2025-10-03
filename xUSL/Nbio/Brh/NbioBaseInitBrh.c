@@ -616,6 +616,12 @@ NbioBaseConfigurationBrh (
       }
     }
 
+    if (GnbHandle->SbPresent) {
+      Property &= ~PROPERTY_SB_NOT_PRESENT;
+    } else {
+      Property |= PROPERTY_SB_NOT_PRESENT;
+    }
+
     NBIO_TRACEPOINT(SIL_TRACE_INFO, "Actual Properties for RB %d = 0x%X\n", GnbHandle->RBIndex, Property);
     if ((GnbHandle->RBIndex & 0x3) == 0) {
       ///
@@ -760,6 +766,22 @@ NbioBaseConfigurationBrh (
           true,
           true,
           false
+          );
+      }
+      if (GnbHandle->RBIndex == 0) {
+        NonPciPspBarInit(GnbHandle,
+          NBIO_SPACE(GnbHandle, SIL_RSVD_ADDR_13B102D8),
+          NBIO_SPACE(GnbHandle, SIL_RSVD_ADDR_13B102DC),
+          NONPCI_BARSIZE_1MB,
+          true,
+          true
+          );
+        NonPciPspBarInit(GnbHandle,
+          NBIO_SPACE(GnbHandle, SIL_RSVD_ADDR_13B102E0),
+          NBIO_SPACE(GnbHandle, SIL_RSVD_ADDR_13B102E4),
+          NONPCI_BARSIZE_1MB,
+          true,
+          true
           );
       }
     } else {

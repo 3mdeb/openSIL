@@ -671,6 +671,18 @@ SMN_TABLE NbioIohcP2pTbl [] = {
     ),
   SMN_ENTRY_TERMINATE
 };
+
+SMN_TABLE SmallNbioIohcP2pTbl [] = {
+  SMN_ENTRY_RMW(SIL_RSVD_ADDR_1D410118,
+    IOHC_FEATURE_CNTL_P2P_mode_OFFSET,
+    (0x1 << IOHC_FEATURE_CNTL_P2P_mode_OFFSET)
+    ),
+  SMN_ENTRY_RMW(SIL_RSVD_ADDR_1D410230,
+    PCIE_VDM_CNTL2_VdmP2pMode_MASK,
+    (0x1 << PCIE_VDM_CNTL2_VdmP2pMode_OFFSET)
+    ),
+  SMN_ENTRY_TERMINATE
+};
 // End of NbioIohcP2pTbl
 
 // --------------------------------------------------
@@ -2000,6 +2012,39 @@ SMN_TABLE  SmallNbioIoapicIntrRoutingTbl [] = {
 };
 // End of NbioIoapicIntrRoutingTbl
 
+SMN_TABLE NbioIoapicFeaturesTbl [] = {
+  SMN_ENTRY_RMW(SMN_IOHUB0_N0NBIO0_IOAPIC_FEATURES_ENABLE,
+    (1 << 2),
+    (1 << 2)
+    ),
+  SMN_ENTRY_RMW(SMN_IOHUB0_N0NBIO0_IOAPIC_FEATURES_ENABLE,
+    (1 << 4),
+    (1 << 4)
+    ),
+  SMN_ENTRY_PROPERTY_RMW(PROPERTY_SB_NOT_PRESENT,
+    SMN_IOHUB0_N0NBIO0_IOAPIC_FEATURES_ENABLE,
+    (1 << 5),
+    (1 << 5)
+    ),
+  SMN_ENTRY_TERMINATE
+};
+
+SMN_TABLE SmallNbioIoapicFeaturesTbl [] = {
+  SMN_ENTRY_RMW(SMN_IOHUB0_N0NBIO0_IOAPIC_FEATURES_ENABLE,
+    (1 << 2),
+    (1 << 2)
+    ),
+  SMN_ENTRY_RMW(SMN_IOHUB0_N0NBIO0_IOAPIC_FEATURES_ENABLE,
+    (1 << 4),
+    (1 << 4)
+    ),
+  SMN_ENTRY_PROPERTY_RMW(PROPERTY_SB_NOT_PRESENT,
+    SMN_IOHUB0_N0NBIO0_IOAPIC_FEATURES_ENABLE,
+    (1 << 5),
+    (1 << 5)
+    ),
+  SMN_ENTRY_TERMINATE
+};
 
 SMN_TABLE PcieHideBridgeTbl [] = {
   SMN_ENTRY_RMW(SIL_RSVD_ADDR_13B33404,
@@ -2128,6 +2173,7 @@ SMN_TABLE SmallNbioIohcRefClkTbl [] = {
     ),
   SMN_ENTRY_TERMINATE
 };
+
 // Version 1.00.0
 SMN_TABLE_ENTRY GnbEarlyInitTableCommon [] = {
   SMN_ENTRY_TABLE_64(NbioIohcP2pTbl),                 // Enabling Peer-to-Peer
@@ -2137,6 +2183,8 @@ SMN_TABLE_ENTRY GnbEarlyInitTableCommon [] = {
   SMN_ENTRY_TABLE_64(NbioIoapicClockGatingTbl),       // IOAPIC Clock Gating and Power Management
   SMN_ENTRY_TABLE_64(NbioIoapicIntrRoutingTbl),       // IOAPIC Initialization:
                                                       // Recommended Interrupt Routing and Swizzling
+
+  SMN_ENTRY_TABLE_64(NbioIoapicFeaturesTbl),          // IOAPIC SBFeatureEn and IOAPIC Secondary En
   SMN_ENTRY_TABLE_64(PcieHideBridgePcie6Tbl),
   SMN_ENTRY_TABLE_64(NbioIohcPerfTbl),           // IOHC Performance
   //
@@ -2148,11 +2196,13 @@ SMN_TABLE_ENTRY GnbEarlyInitTableCommon [] = {
 
 // Version 1.00.0
 SMN_TABLE_ENTRY  GnbEarlyInitTableCommonSmallIohc [] = {
+  SMN_ENTRY_TABLE_64(SmallNbioIohcP2pTbl),            // Enabling Peer-to-Peer
   SMN_ENTRY_TABLE_64(SmallNbioIohcClockGatingTbl),    // IOHC Clock Gating
   SMN_ENTRY_TABLE_64(SmallNbioIohcArbitrationTbl),    // IOHC Arbitration Control
   SMN_ENTRY_TABLE_64(SmallNbioIoapicClockGatingTbl),  // IOAPIC Clock Gating and Power Management
   SMN_ENTRY_TABLE_64(SmallNbioIoapicIntrRoutingTbl),  // IOAPIC Initialization:
                                                       // Recommended Interrupt Routing and Swizzling
+  SMN_ENTRY_TABLE_64(NbioIoapicFeaturesTbl),          // IOAPIC SBFeatureEn and IOAPIC Secondary En
   SMN_ENTRY_TABLE_64(SmallNbioIohcPerfTbl),           // IOHC Performance
   SMN_ENTRY_TABLE_64(SmallNbioIohcRefClkTbl),
   SMN_ENTRY_TERMINATE_TABLE
