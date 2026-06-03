@@ -38,7 +38,7 @@
 
 #define SIZE_16M_ALIGN             0xFFFFFFFFFF000000ull
 
-#define BOTTOM_OF_COMPAT           0xFEC00000ul // From BOTTOM_OF_COMPAT to 4G would be leaved as undescribed (COMPAT)
+#define BOTTOM_OF_COMPAT           0xFEB00000ul // From BOTTOM_OF_COMPAT to 4G would be leaved as undescribed (COMPAT)
 
 #define ADDITIONAL_POSTED_REGION_UNDER_PRIMARY_RB_START 0xFED00000ul
 #define ADDITIONAL_POSTED_REGION_UNDER_PRIMARY_RB_END   0xFED0FFFFul
