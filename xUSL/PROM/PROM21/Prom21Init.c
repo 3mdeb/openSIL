@@ -451,7 +451,7 @@ SearchProm (
                     XhciMmio, MmioSize);
 
     PromDataBlk->PromOutputBlk.PT21GpioMmio[0] = 0xFEC40000;
-    PromDataBlk->PromOutputBlk.PT21GpioMmio[0] = 0xFEC50000;
+    PromDataBlk->PromOutputBlk.PT21GpioMmio[1] = 0xFEC50000;
 
     PROM_TRACEPOINT(SIL_TRACE_INFO, "  Enable DF MMIO specific decode.\n");
     PROM_TRACEPOINT(SIL_TRACE_INFO, "  XHCI MMIO set, start to read efuse value\n");
