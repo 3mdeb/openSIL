@@ -271,7 +271,7 @@ Prom21GpioInitial (
 
     PROM_TRACEPOINT(SIL_TRACE_INFO, "PT GPIO Pin Setting = 0x%x, 0x%x\n",
                     GpioRegData.GpioPinDir, GpioRegData.GpioOutputData);
-    PROM_TRACEPOINT(SIL_TRACE_INFO, "PT GPIO Pin New Setting = %x, %x\n",
+    PROM_TRACEPOINT(SIL_TRACE_INFO, "PT GPIO Pin New Setting = 0x%x, 0x%x\n",
                     GpioReg.GpioPinDir, GpioReg.GpioOutputData);
 
     if (PromDataBlk->PromOutputBlk.SecondaryPTPresent) {

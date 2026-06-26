@@ -195,7 +195,6 @@ Prom21UsbPortSetting (
 
   PROM_TRACEPOINT(SIL_TRACE_ENTRY, "\n");
 
-  PROM_TRACEPOINT(SIL_TRACE_INFO, "  XHCI XhciId == 0x%04X, ", XhciId);
   switch (XhciId) {
   case PT21_XHCI_ID_L1: PromVariant = 1; break;
   case PT21_XHCI_ID_L2: PromVariant = 2; break;
@@ -209,9 +208,9 @@ Prom21UsbPortSetting (
   }
 
   if (PromVariant != 0) {
-    PROM_TRACEPOINT(SIL_TRACE_INFO, "  XHCI XhciId == 0x%04X, PT21 L.%d\n", PromVariant);
+    PROM_TRACEPOINT(SIL_TRACE_INFO, "  XHCI XhciId == 0x%04X, PT21 L.%u\n", XhciId, PromVariant);
   } else {
-    PROM_TRACEPOINT(SIL_TRACE_INFO, "  XHCI XhciId == 0x%04X, PT21 Unknown\n");
+    PROM_TRACEPOINT(SIL_TRACE_INFO, "  XHCI XhciId == 0x%04X, PT21 Unknown\n", XhciId);
     return;
   }
 
