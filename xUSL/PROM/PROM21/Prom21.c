@@ -287,7 +287,7 @@ Prom21PcieConfig (
         if (PromDataBlk->PT21PciePortTargetSpeed[PortNum] != 0xf) {
           Prom21PcieTargetSpeedConfig(PromClassBlk,
             UspBus,
-            0,
+            PortNum,
             PromDataBlk->PT21PciePortTargetSpeed[PortNum]
             );
         }
